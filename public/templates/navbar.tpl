@@ -4,11 +4,13 @@
 			<ul class="nav" >
                 
                 <li ><a href="/login">HOME</a></li>
-                <li><a href="/todomvc">Todo</a></li>
+                <li><a href="/angoose/job/create">New Test</a></li>
+                <li><a href="/angoose/job/list">Test List</a></li>
+                
+                <li><a href="/angoose/machine/list">Machines</a></li>
                 <li class="dropdown"  ng-if="user" >
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown"  >Admin <i class="icon-chevron-down"></i></a>
                     <ul class="dropdown-menu">
-                        <li><a href="/deform/todo/list">Manage Todos</a></li>
                         <li><a href="/deform/angoose-user/list">Manage Users</a></li>
                         <li><a href="/deform/role/list">Manage Permissions</a></li>
 

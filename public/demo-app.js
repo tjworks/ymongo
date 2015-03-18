@@ -1,9 +1,10 @@
 'use strict';
 
-var demo = angular.module('demo', ['ngRoute', 'angoose.client', 'angoose.ui','ui.bootstrap', "ui.bootstrap.tpls",'angular-redactor'])
+var demo = angular.module('demo', ['ngRoute', 'angoose.client', 'angoose.ui','ui.bootstrap', "ui.bootstrap.tpls",'angular-redactor','ui.select2'])
         .config(['$routeProvider','$locationProvider', function($routeProvider, $locationProvider) {
             $locationProvider.html5Mode(true);
             $routeProvider.when("/login", {templateUrl:'/templates/login.tpl'});
+            $routeProvider.when("/mrun/create-test", {templateUrl:'/templates/create-test.tpl'});
             $routeProvider.when("/todomvc", {templateUrl:'/templates/todo.tpl' });
             $routeProvider.when('/:selectedStatus?', {templateUrl:'/templates/todo.tpl' });
 }]);
@@ -19,7 +20,7 @@ demo.controller('login-controller', function($scope, $rootScope, LoginService,$l
            if(!err && user) {
                 console.log("LoginCtrl post login OK");
                 $rootScope.user = user;
-                $location.path("/todomvc")
+                $location.path("/angoose/job/list")
             }
             else {
                 console.error("Error login", err);

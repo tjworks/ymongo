@@ -30,6 +30,25 @@ var options = {
     },
     "angoose-ui-template-dir":"./ui-templates"
 };    
+
+
+require('./server/mongoose-hacks/customRef')({
+        // we can init the custom ref types
+        // so for a reference field with type 'the-type'
+        // e.g.
+        // { _id: xxxxx, type: 'the-type' }
+        // 
+        // needs to be mapped like this:
+        // 
+        // 'the-type': MongooseModel
+        // 
+        // We'll do this in the individual files though.
+        // 
+    });
+
+    // console.log('mongoose.Schema.Types.CustomRef', mongoose.Schema.Types.CustomRef);
+    require('./server/mongoose-hacks/customPopulate');
+
 require("angoose").init(app, options);
 
 // app.get("/todomvc", function(req, res){
@@ -41,6 +60,7 @@ function demo(req, res){
     res.writeHead(200, { "Content-Type" : "text/html" });
     fs.createReadStream("./public/demo.html").pipe(res); 
 }
+app.get("/mrun/*", demo);
 app.get("/todomvc", demo);
 app.get("/deform/*", demo);
 app.get("/angoose/*", demo);
