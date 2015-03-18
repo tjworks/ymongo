@@ -16,9 +16,7 @@ var Client = require('ssh2').Client;
 //   username: 'tjworks',
 //   privateKey: require('fs').readFileSync('/Users/tjworks/.ssh/id_rsa')
 // });
-
-
-exports.execute = function(command, context, callback){
+var executor = function(command, context, callback){
   var conn = new Client();
 
   var stderr = "";
@@ -48,3 +46,11 @@ exports.execute = function(command, context, callback){
   })
   conn.connect(context);
 }
+
+exports.Host = function(context){
+    this.ctx = context;
+    this.execute = function(cmd, callbck){
+      executor(cmd, context, callback);
+    }
+};
+exports.execute =  executor;

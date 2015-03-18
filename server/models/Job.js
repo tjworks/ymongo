@@ -100,9 +100,10 @@ var schema = mongoose.Schema({
             mongoScript: {type:String, template:"textarea"}  
         },
         report: {type: "mixed"},
-        stats: {
+        results: {
             ops: {type: Number , label:"Op/s",  tags:['default-list']},
-            latency:{type: Number, label: "Latency(ms)", tags:['default-list']}
+            latency_avg:{type: Number, label: "Latency(ms)", tags:['default-list']},
+            latency_99th:{type: Number, label: "99th Latency", tags:['default-list']}
         }
        
 });
