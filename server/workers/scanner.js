@@ -2,10 +2,8 @@ var angoose = require("angoose");
 var async = require("async");
 var Shell =require("./shell");
 var Host = require("./host");
-console.log("HOST: ", Host);
-function joblogger(job, msg1, msg2, msg3){
-    console.log("[JOB] "+job.name+": "+ msg1);
-}
+
+var joblogger = require("./logger");
 function scan(){
   var Job = angoose("Job");
   Job.findOne({status:"pending"}, function(err, job){
@@ -50,7 +48,7 @@ function scan(){
           updateStatus(job, "draft");
           return;
         }
-        console.log("Clients", clients)
+        //console.log("Clients", clients)
         updateStatus(job, "running", function(err){ 
              joblogger(job, "Starting job");
              var cmd = prepareCommand(job, clients); //"cd YCSB; ./bin/ycsb run mongodb -s -P workload.template";
@@ -62,33 +60,40 @@ function scan(){
                 privateKey: client.key,
                 path:""
              }
-             joblogger(job, "Send command: "+ cmd);
+             joblogger(job, "Sending command to host "+ctx.host+ ": "+ cmd);
 
              var host = Host(ctx);
+             host.isReady(function(err){
+                  if(err){
+                      joblogger(job, "Host not ready", err);
+                      return;
+                  } 
+                  host.execute(cmd, function(err, res){
+                      if(err){
+                        joblogger(job, "Error running command: "+ err);
+                        return;
+                      }
+                      //joblogger(job, "Test result raw data:", res);
+                      res.client = client.name;
+                      job.report = job.report || {};
+                      job.report.raw = job.report.raw || [];  // to delete
+                      job.report.raw =  [];
+                      job.markModified("report");
+                      //job.report.raw.push(res);
 
-             host.execute(cmd, function(err, res){
-                if(err){
-                  joblogger(job, "Error running command: "+ err);
-                  return;
-                }
-                res.client = client.name;
-                job.report = job.report || {};
-                job.report.raw = job.report.raw || [];  // to delete
-                job.report.raw =  [];
-                job.markModified("report");
-                //job.report.raw.push(res);
+                      // massage stats
+                      //  console.log("RAW", res.stdout)
+                      var stats  = parse(res.stdout+ res.stderr);
+                      job.report.stats = stats;
+                      
+                      job.results =  stats.OVERALL; 
+                      updateStatus(job, "completed", function(err){
+                          joblogger(job, "Test Result", stats);
+                      });
 
-                // massage stats
-                //  console.log("RAW", res.stdout)
-                var stats  = parse(res.stdout+ res.stderr);
-                job.report.stats = stats;
-                
-                job.results =  stats.OVERALL; 
-                updateStatus(job, "completed", function(err){
-
-                });
-
-             })
+                 }); // end execute
+             }); // end isReady
+             
         });
 
     });     
@@ -97,15 +102,26 @@ function scan(){
 
 
 
- function prepareCommand(job, clients){
+ function prepareCommand(job, clients ){
      var client = clients[0];
-     var cmd = "cd ycsb; ./bin/ycsb run mongodb -s -P workload.template ";
+     //var cmd = "cd ~/ycsb; ";
+     //./bin/ycsb run 
+     var cmd="mongodb -s -P workload.template ";
      var spec = job.clientSpec || {};
      Object.keys(spec).forEach(function(key){
         if(typeof spec[key] == 'string' || typeof spec[key] == 'number'  )
           cmd+=" -p "+ key+"=\""+spec[key]+"\""
-     })
-     return cmd;
+     });
+
+     var finalCmd = "cd ~/ycsb; ";
+     if(job.preRun && job.preRun.loadData) {
+        // add run phase
+        //finalCmd += "echo 'IGNORE_START'; ./bin/ycsb load "+ cmd+"; echo 'IGNORE_END'; "
+        finalCmd += "  ./bin/ycsb load "+ cmd+" -p exporter=com.yahoo.ycsb.measurements.exporter.TextMeasurementsExporter; "
+     }
+     finalCmd += "./bin/ycsb run " + cmd+"; "
+     
+     return finalCmd;
  }
 
 

@@ -3,7 +3,7 @@ var path= require("path"), http = require("http"), fs = require("fs");
 var express = require("express");
 var logging = require("log4js");
 var logger = logging.getLogger('angoose');
-logger.setLevel(logging.levels.DEBUG);
+logger.setLevel(logging.levels.INFO);
 var app = express();
 app.configure(function() {
     app.set('port', 8080);
@@ -22,7 +22,7 @@ app.configure(function() {
 var options = {
     extensions:['angoose-users',   'angoose-ui', 'angoose-authorization'],
     'module-dirs':  './server',
-    logging:'TRACE',
+    logging:'INFO',
     clientFile:'angoose-client-generated.tmp',
     mongo_opts:'localhost:27017/test',
     'angoose-authorization':{

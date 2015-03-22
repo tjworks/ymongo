@@ -92,6 +92,7 @@ var schema = mongoose.Schema({
         clientSpec: clientSpec,
         serverSpec: serverSpec,
         preRun: {
+            loadData: {type:Boolean, label:"Load Initial Data?"},
             shellScript: {type:String, template:"textarea"},
             mongoScript: {type:String, template:"textarea"}  
         },

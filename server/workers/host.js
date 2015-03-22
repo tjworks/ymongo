@@ -48,19 +48,25 @@ var executor = function(command, context, callback){
   conn.connect(context);
 }
 
+
+
 module.exports = function(context){
     this.ctx = context;
-
-    this.execute = function(cmd, callback){
-
-      this.checkJava(function(isOk){
-          if(!isOk)  return callback("Java is not installed?");
-
-          this.checkYCSB(function(exists){
-              if(!exists) return callback("YCSB could not be installed, check logs");
-              executor(cmd, context, callback);
+    var self = this;
+    this.isReady = function(callback){
+      console.log("Checking Java...");
+      self.checkJava(function(error){
+          if(error)  return callback(error);
+          console.log("Java is Okay.");
+          self.checkYCSB(function(error){
+              if(error) return callback("YCSB could not be installed, check logs");
+              console.log("YCSB is Okay");
+              callback(null, true);        
           });
       });       
+    }
+    this.execute = function(cmd, callback){      
+      executor(cmd, context, callback);
     }; // end method
 
     this.checkJava = function(callback){
@@ -68,10 +74,10 @@ module.exports = function(context){
        executor(cmd, context, function(err, ret){
           if(!ret || ret.code ){
             console.log("Failed to validate java ", ret)
-            callback(false)
+            callback("Failed to validate java ");
           }
           else
-              callback(true)
+              callback(null)
        })
     }
     this.checkYCSB = function(callback){
@@ -86,15 +92,15 @@ module.exports = function(context){
                     executor("tar -xvf ycsb.tar", context, function(err, ret2){
                           console.log("untar result", err || ret2.code || "success!", ret2);
                           if(!err && !ret2.code)
-                            callback(true)
+                            callback(null)
                           else
-                            callback(false);                          
+                            callback("tar extraction failed: "+ ret2);                          
                     });
                 }
             });            
           }          
           else 
-            callback(true)
+            callback(null)
        })
     }
     return this;
